@@ -27,6 +27,9 @@ public class CalculateEdges implements Observer {
         fractal2.addObserver(this);
         fractal3.addObserver(this);
         this.sender = sender;
+        
+        String s = "hoi";
+        if (s == "hoi".toString()){}
     }
 
     
@@ -55,7 +58,7 @@ public class CalculateEdges implements Observer {
         thBottomEdge.start();
         thRightEdge.start();
         
-        /*
+        
         try {
             thLeftEdge.join();
             thBottomEdge.join();
@@ -63,7 +66,7 @@ public class CalculateEdges implements Observer {
         } catch (InterruptedException ex) {
            ex.fillInStackTrace();
         }
-        */
+        
         sender.Request();
     }
 
