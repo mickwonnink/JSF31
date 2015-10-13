@@ -8,12 +8,13 @@ package calculate;
 import java.util.ArrayList;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.concurrent.Callable;
 
 /**
  *
  * @author martijn
  */
-public class GenerateSide extends Observable implements Runnable,Observer{
+public class GenerateSide implements Callable,Observer{
     
     Side side;
     KochFractal koch;
@@ -26,8 +27,18 @@ public class GenerateSide extends Observable implements Runnable,Observer{
         side = s;
         edges = new ArrayList<Edge>();
     }
-    
+    /*
     public void run(){
+        
+    }
+    */
+    @Override
+    public void update(Observable o, Object arg){
+        edges.add((Edge)arg);
+    }
+
+    @Override
+    public Object call() throws Exception {
         switch(side)
         {
             case LEFT: 
@@ -46,15 +57,6 @@ public class GenerateSide extends Observable implements Runnable,Observer{
                 break;
             }
         }
-        
-        
-        // let the observer know that the ArrayList changed
-        this.setChanged();
-        this.notifyObservers(edges);
-    }
-    
-    @Override
-    public void update(Observable o, Object arg){
-        edges.add((Edge)arg);
+        return edges;
     }
 }

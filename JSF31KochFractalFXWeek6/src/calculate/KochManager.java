@@ -8,6 +8,12 @@ package calculate;
 import java.util.ArrayList;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import jsf31kochfractalfx.JSF31KochFractalFX;
 import timeutil.TimeStamp;
 
@@ -47,34 +53,36 @@ public class KochManager implements Observer {
     public void changeLevel(int nxt){
         edges.clear();
         application.clearKochPanel();
-        k.setLevel(nxt);
         timestamp = new TimeStamp();
         timestamp.setBegin();
         
         sideLeft = new GenerateSide(nxt, Side.LEFT);
-        sideLeft.addObserver(this);
-        //sideLeft.run();
         sideBottom = new GenerateSide(nxt, Side.BOTTOM);
-        sideBottom.addObserver(this);
-        //sideBottom.run();
         sideRight = new GenerateSide(nxt, Side.RIGHT);
-        sideRight.addObserver(this);
-        //sideRight.run();
         
-        Thread thLeft = new Thread(sideLeft);
-        thLeft.start();
-        Thread thBottom = new Thread(sideBottom);
-        thBottom.start();
-        Thread thRight = new Thread(sideRight);
-        thRight.start();
-        
+        ExecutorService pool = Executors.newFixedThreadPool(3);
+        Future<ArrayList<Edge>> futEdgesLeft = pool.submit(sideLeft);
+        Future<ArrayList<Edge>> futEdgesBottom = pool.submit(sideBottom);
+        Future<ArrayList<Edge>> futEdgesRight = pool.submit(sideRight);
+        pool.shutdown();
         
         try {
-            thLeft.join();
-            thBottom.join();
-            thRight.join();
+            for (Edge e : (ArrayList<Edge>)futEdgesLeft.get())
+            {
+                edges.add(e);
+            }
+            for (Edge e : (ArrayList<Edge>)futEdgesBottom.get())
+            {
+                edges.add(e);
+            }
+            for (Edge e : (ArrayList<Edge>)futEdgesRight.get())
+            {
+                edges.add(e);
+            }
+        } catch (ExecutionException ex) {
+            Logger.getLogger(KochManager.class.getName()).log(Level.SEVERE, null, ex);
         } catch (InterruptedException ex) {
-           ex.fillInStackTrace();
+            Logger.getLogger(KochManager.class.getName()).log(Level.SEVERE, null, ex);
         }
         
         timestamp.setEnd();

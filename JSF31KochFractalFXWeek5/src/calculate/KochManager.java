@@ -26,8 +26,6 @@ public class KochManager implements Observer {
     
     public KochManager(JSF31KochFractalFX app){
         application = app;
-        k = new KochFractal();
-        k.addObserver(this);
         edges = new ArrayList();
     }
     
@@ -47,7 +45,6 @@ public class KochManager implements Observer {
     public void changeLevel(int nxt){
         edges.clear();
         application.clearKochPanel();
-        k.setLevel(nxt);
         timestamp = new TimeStamp();
         timestamp.setBegin();
         
