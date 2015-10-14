@@ -27,11 +27,7 @@ public class GenerateSide implements Callable,Observer{
         side = s;
         edges = new ArrayList<Edge>();
     }
-    /*
-    public void run(){
-        
-    }
-    */
+    
     @Override
     public void update(Observable o, Object arg){
         edges.add((Edge)arg);

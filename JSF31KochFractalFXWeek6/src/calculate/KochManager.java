@@ -8,12 +8,15 @@ package calculate;
 import java.util.ArrayList;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.application.Platform;
 import jsf31kochfractalfx.JSF31KochFractalFX;
 import timeutil.TimeStamp;
 
@@ -24,17 +27,20 @@ import timeutil.TimeStamp;
 public class KochManager implements Observer {
     KochFractal k;
     private JSF31KochFractalFX application;
-    ArrayList<Edge> edges;
-    TimeStamp timestamp;
+    CopyOnWriteArrayList<Edge> edges;
+    TimeStamp timestampCalc;
+    TimeStamp timestampDraw;
     GenerateSide sideLeft;
     GenerateSide sideBottom;
     GenerateSide sideRight;
+    ExecutorService pool;
     
     public KochManager(JSF31KochFractalFX app){
         application = app;
         k = new KochFractal();
         k.addObserver(this);
-        edges = new ArrayList();
+        edges = new CopyOnWriteArrayList();
+        pool = Executors.newFixedThreadPool(4);
     }
     
     @Override
@@ -52,55 +58,59 @@ public class KochManager implements Observer {
     
     public void changeLevel(int nxt){
         edges.clear();
-        application.clearKochPanel();
-        timestamp = new TimeStamp();
-        timestamp.setBegin();
+        timestampCalc = new TimeStamp();
+        timestampCalc.setBegin();
         
         sideLeft = new GenerateSide(nxt, Side.LEFT);
         sideBottom = new GenerateSide(nxt, Side.BOTTOM);
         sideRight = new GenerateSide(nxt, Side.RIGHT);
         
-        ExecutorService pool = Executors.newFixedThreadPool(3);
         Future<ArrayList<Edge>> futEdgesLeft = pool.submit(sideLeft);
         Future<ArrayList<Edge>> futEdgesBottom = pool.submit(sideBottom);
         Future<ArrayList<Edge>> futEdgesRight = pool.submit(sideRight);
-        pool.shutdown();
         
-        try {
-            for (Edge e : (ArrayList<Edge>)futEdgesLeft.get())
-            {
-                edges.add(e);
-            }
-            for (Edge e : (ArrayList<Edge>)futEdgesBottom.get())
-            {
-                edges.add(e);
-            }
-            for (Edge e : (ArrayList<Edge>)futEdgesRight.get())
-            {
-                edges.add(e);
-            }
+        Thread th = new Thread(new Runnable(){
+            @Override public void run(){
+            try {
+                for (Edge e : (ArrayList<Edge>)futEdgesLeft.get())
+                {
+                    edges.add(e);
+                }
+                for (Edge e : (ArrayList<Edge>)futEdgesBottom.get())
+                {
+                    edges.add(e);
+                }
+                for (Edge e : (ArrayList<Edge>)futEdgesRight.get())
+                {
+                    edges.add(e);
+                }
+                application.requestDrawEdges();
         } catch (ExecutionException ex) {
             Logger.getLogger(KochManager.class.getName()).log(Level.SEVERE, null, ex);
         } catch (InterruptedException ex) {
             Logger.getLogger(KochManager.class.getName()).log(Level.SEVERE, null, ex);
         }
+            }
+        });
+        pool.execute(th);
+                timestampCalc.setEnd();
+                application.setTextCalc(timestampCalc.toString());
         
-        timestamp.setEnd();
-        application.setTextCalc(timestamp.toString());
-        drawEdges();
+        
     }
     public void drawEdges(){
         
-        timestamp = new TimeStamp(); 
-        timestamp.setBegin();
+        application.clearKochPanel();
+        timestampDraw = new TimeStamp(); 
+        timestampDraw.setBegin();
         
         for (Edge e : edges){
 
             application.drawEdge(e);
         }
         
-        timestamp.setEnd();
-        application.setTextDraw(timestamp.toString());
+        timestampDraw.setEnd();
+        application.setTextDraw(timestampDraw.toString());
         application.setTextNrEdges(Integer.toString(k.getNrOfEdges()));
     }
     
