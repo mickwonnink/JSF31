@@ -27,13 +27,13 @@ import timeutil.TimeStamp;
 public class KochManager implements Observer {
     KochFractal k;
     private JSF31KochFractalFX application;
-    CopyOnWriteArrayList<Edge> edges;
+    CopyOnWriteArrayList<Edge> edges;/// synchronized arraylist
     TimeStamp timestampCalc;
     TimeStamp timestampDraw;
     GenerateSide sideLeft;
     GenerateSide sideBottom;
     GenerateSide sideRight;
-    ExecutorService pool;
+    ExecutorService pool; /// only one threadpool
     
     public KochManager(JSF31KochFractalFX app){
         application = app;
@@ -69,7 +69,7 @@ public class KochManager implements Observer {
         Future<ArrayList<Edge>> futEdgesBottom = pool.submit(sideBottom);
         Future<ArrayList<Edge>> futEdgesRight = pool.submit(sideRight);
         
-        Thread th = new Thread(new Runnable(){
+        Thread th = new Thread(new Runnable(){/// not letting UI wait for the calculations
             @Override public void run(){
             try {
                 for (Edge e : (ArrayList<Edge>)futEdgesLeft.get())
@@ -85,6 +85,8 @@ public class KochManager implements Observer {
                     edges.add(e);
                 }
                 application.requestDrawEdges();
+                 timestampCalc.setEnd();
+                application.setTextCalc(timestampCalc.toString()); // gebruik run later hiervoor
         } catch (ExecutionException ex) {
             Logger.getLogger(KochManager.class.getName()).log(Level.SEVERE, null, ex);
         } catch (InterruptedException ex) {
@@ -93,8 +95,7 @@ public class KochManager implements Observer {
             }
         });
         pool.execute(th);
-                timestampCalc.setEnd();
-                application.setTextCalc(timestampCalc.toString());
+               
         
         
     }
