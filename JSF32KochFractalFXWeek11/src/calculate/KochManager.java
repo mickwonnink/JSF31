@@ -5,6 +5,7 @@
  */
 package calculate;
 
+import static java.lang.Thread.sleep;
 import java.util.ArrayList;
 import java.util.Observable;
 import java.util.Observer;
@@ -30,9 +31,9 @@ public class KochManager implements Observer {
     CopyOnWriteArrayList<Edge> edges;/// synchronized arraylist
     TimeStamp timestampCalc;
     TimeStamp timestampDraw;
-    GenerateSide sideLeft;
-    GenerateSide sideBottom;
-    GenerateSide sideRight;
+    GenerateSideTask sideLeft;
+    GenerateSideTask sideBottom;
+    GenerateSideTask sideRight;
     ExecutorService pool; /// only one threadpool
     
     public KochManager(JSF31KochFractalFX app){
@@ -61,44 +62,45 @@ public class KochManager implements Observer {
         timestampCalc = new TimeStamp();
         timestampCalc.setBegin();
         
-        sideLeft = new GenerateSide(nxt, Side.LEFT);
-        sideBottom = new GenerateSide(nxt, Side.BOTTOM);
-        sideRight = new GenerateSide(nxt, Side.RIGHT);
+        sideLeft = new GenerateSideTask(nxt, Side.LEFT);
+        sideBottom = new GenerateSideTask(nxt, Side.BOTTOM);
+        sideRight = new GenerateSideTask(nxt, Side.RIGHT);
         
-        Future<ArrayList<Edge>> futEdgesLeft = pool.submit(sideLeft);
-        Future<ArrayList<Edge>> futEdgesBottom = pool.submit(sideBottom);
-        Future<ArrayList<Edge>> futEdgesRight = pool.submit(sideRight);
+        application.pbLeft.progressProperty().unbind();
+        application.pbLeft.setProgress(0);
+        application.pbLeft.progressProperty().bind(sideLeft.progressProperty());
+        application.labelLeftEdges.textProperty().bind(sideLeft.messageProperty());
+        application.pbBottom.progressProperty().unbind();
+        application.pbBottom.setProgress(0);
+        application.pbBottom.progressProperty().bind(sideBottom.progressProperty());
+        application.labelBottomEdges.textProperty().bind(sideBottom.messageProperty());        
+        application.pbRight.progressProperty().unbind();
+        application.pbRight.setProgress(0);
+        application.pbRight.progressProperty().bind(sideRight.progressProperty());
+        application.labelRightEdges.textProperty().bind(sideRight.messageProperty());
         
-        Thread th = new Thread(new Runnable(){/// not letting UI wait for the calculations
-            @Override public void run(){
-            try {
-                for (Edge e : (ArrayList<Edge>)futEdgesLeft.get())
-                {
-                    edges.add(e);
-                }
-                for (Edge e : (ArrayList<Edge>)futEdgesBottom.get())
-                {
-                    edges.add(e);
-                }
-                for (Edge e : (ArrayList<Edge>)futEdgesRight.get())
-                {
-                    edges.add(e);
-                }
-                application.requestDrawEdges();
-                 timestampCalc.setEnd();
-                application.setTextCalc(timestampCalc.toString()); // gebruik run later hiervoor
-        } catch (ExecutionException ex) {
-            Logger.getLogger(KochManager.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (InterruptedException ex) {
-            Logger.getLogger(KochManager.class.getName()).log(Level.SEVERE, null, ex);
-        }
-            }
-        });
-        pool.execute(th);
-               
         
+        
+        pool.execute(sideLeft);
+        pool.execute(sideBottom);
+        pool.execute(sideRight);
+        
+            
+            Thread th = new Thread(new Runnable(){/// not letting UI wait for the calculations
+                @Override public void run(){
+                    try {
+                        sleep(250);
+                    } catch (InterruptedException ex) {
+                        Logger.getLogger(KochManager.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    application.requestDrawEdges();
+                }
+            });
+            pool.execute(th);
+            
         
     }
+    
     public void drawEdges(){
         
         application.clearKochPanel();

@@ -15,6 +15,7 @@ import javafx.scene.Scene;
 import javafx.scene.canvas.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.input.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
@@ -55,6 +56,17 @@ public class JSF31KochFractalFX extends Application {
     private Canvas kochPanel;
     private final int kpWidth = 500;
     private final int kpHeight = 500;
+    
+    // Show calculation progression
+    private Label labelLeft;
+    public ProgressBar pbLeft;
+    public Label labelLeftEdges;
+    private Label labelBottom;
+    public ProgressBar pbBottom;
+    public Label labelBottomEdges;
+    private Label labelRight;
+    public ProgressBar pbRight;
+    public Label labelRightEdges;
     
     @Override
     public void start(Stage primaryStage) {
@@ -128,6 +140,33 @@ public class JSF31KochFractalFX extends Application {
             }
         });
         grid.add(buttonFitFractal, 14, 6);
+        
+        labelLeft = new Label("Progress Left:");
+        grid.add(labelLeft, 0, 7);
+        pbLeft = new ProgressBar();
+        grid.add(pbLeft, 3, 7);
+        labelLeftEdges = new Label("Nr Edges: 0");
+        grid. add(labelLeftEdges, 4, 7);
+        
+        labelBottom = new Label("Progress Left:");
+        grid.add(labelBottom, 0, 8);
+        pbBottom = new ProgressBar();
+        grid.add(pbBottom, 3, 8);
+        labelBottomEdges = new Label("Nr Edges: 0");
+        grid. add(labelBottomEdges, 4, 8);
+        
+        labelRight = new Label("Progress Left:");
+        grid.add(labelRight, 0, 9);
+        pbRight = new ProgressBar();
+        grid.add(pbRight, 3, 9);
+        labelRightEdges = new Label("Nr Edges: 0");
+        grid. add(labelRightEdges, 4, 9);
+        
+        
+        
+        
+        
+        
         
         // Add mouse clicked event to Koch panel
         kochPanel.addEventHandler(MouseEvent.MOUSE_CLICKED,
