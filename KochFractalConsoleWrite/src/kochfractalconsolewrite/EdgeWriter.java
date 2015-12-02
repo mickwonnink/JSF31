@@ -7,18 +7,22 @@ package kochfractalconsolewrite;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.EOFException;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.NoSuchElementException;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.Scanner;
 import java.util.Timer;
 import javafx.scene.paint.Color;
 
@@ -74,7 +78,6 @@ public class EdgeWriter implements Observer {
                 oos.writeObject(e.color.getBlue());
                 oos.writeObject(e.color.getGreen());
                 oos.writeObject(e.color.getRed());
-                //System.out.println(e.X2 + e.Y1);
             }
             
             oos.close();
@@ -99,7 +102,6 @@ public class EdgeWriter implements Observer {
                 oos.writeObject(e.color.getBlue());
                 oos.writeObject(e.color.getGreen());
                 oos.writeObject(e.color.getRed());
-                //System.out.println(e.X2 + e.Y1);
             }
             
             oos.close();
@@ -123,7 +125,6 @@ public class EdgeWriter implements Observer {
                 pw.print(e.color.getBlue() + "|");
                 pw.print(e.color.getGreen() + "|");
                 pw.println(e.color.getRed());
-                System.out.println(e.X2 + e.Y1);
             }
             pw.close();
             return true;
@@ -146,7 +147,6 @@ public class EdgeWriter implements Observer {
                 pw.print(e.color.getBlue() + "|");
                 pw.print(e.color.getGreen() + "|");
                 pw.println(e.color.getRed());
-                System.out.println(e.X2 + e.Y1);
             }
             pw.close();
             return true;
@@ -171,7 +171,6 @@ public class EdgeWriter implements Observer {
                     double green = (double)ois.readObject();
                     double red = (double)ois.readObject();
                     Edge e = new Edge(x1,x2,y1,y2,Color.color(red, green, blue));
-                    //System.out.println(e.X2 + e.Y1);
                     } catch (EOFException ex) {
                     break;
                     }
@@ -200,7 +199,6 @@ public class EdgeWriter implements Observer {
                     double green = (double)ois.readObject();
                     double red = (double)ois.readObject();
                     Edge e = new Edge(x1,x2,y1,y2,Color.color(red, green, blue));
-                    //System.out.println(e.X2 + e.Y1);
                     } catch (EOFException ex) {
                     break;
                     }
@@ -211,6 +209,65 @@ public class EdgeWriter implements Observer {
             return true;
         }
         catch(Exception ex) {
+            return false;
+        }
+    }
+    
+    public boolean loadEdgesTextNoBuffer() {
+        try {
+            FileReader fr = new FileReader("test.txt");
+            Scanner sc = new Scanner(fr);
+            while(true) {
+                try {
+                    String line = sc.nextLine();
+                    String[] edge = line.split("|");
+                    double x1 = Double.parseDouble(edge[0]);
+                    double x2 = Double.parseDouble(edge[1]);
+                    double y1 = Double.parseDouble(edge[2]);
+                    double y2 = Double.parseDouble(edge[3]);
+                    double blue = Double.parseDouble(edge[4]);
+                    double green = Double.parseDouble(edge[5]);
+                    double red = Double.parseDouble(edge[6]);
+                    Color c = new Color(red, green, blue, 1);
+                    Edge e = new Edge(x1, y1, x2, y2, c);
+                }
+                catch (NoSuchElementException ex) {
+                    break;
+                }
+            }
+            return true;
+        }
+        catch (Exception ex) {
+            return false;
+        }
+    }
+    
+    public boolean loadEdgesTextWithBuffer(){
+        try {
+            FileReader fr = new FileReader("test.txt");
+            BufferedReader br = new BufferedReader(fr);
+            Scanner sc = new Scanner(br);
+            while(true) {
+                try {
+                    String line = sc.nextLine();
+                    String[] edge = line.split("|");
+                    double x1 = Double.parseDouble(edge[0]);
+                    double x2 = Double.parseDouble(edge[1]);
+                    double y1 = Double.parseDouble(edge[2]);
+                    double y2 = Double.parseDouble(edge[3]);
+                    double blue = Double.parseDouble(edge[4]);
+                    double green = Double.parseDouble(edge[5]);
+                    double red = Double.parseDouble(edge[6]);
+                    Color c = new Color(red, green, blue, 1);
+                    Edge e = new Edge(x1, y1, x2, y2, c);
+                }
+                catch (NoSuchElementException ex) {
+                    break;
+                }
+            }
+            return true;
+        }
+        catch (Exception ex) {
             return false;
         }
     }

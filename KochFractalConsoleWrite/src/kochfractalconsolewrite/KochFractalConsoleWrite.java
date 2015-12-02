@@ -21,7 +21,7 @@ public class KochFractalConsoleWrite{
     static int level;
     static int mode;
     static ArrayList<Edge> edges;
-    static FileWriter f = new FileWriter();
+    static EdgeWriter f = new EdgeWriter();
     
     /**
      * @param args the command line arguments
@@ -31,13 +31,6 @@ public class KochFractalConsoleWrite{
 
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
         System.out.print("Enter KochFractal level (only numbers, between 1 and 10): ");
-
-        
-        
-        //1 bin zonder
-        //2 bin met
-        //3 text zonder
-        //4 text met
 
         try {
             level = Integer.valueOf(reader.readLine());
