@@ -18,6 +18,7 @@ import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
+import javafx.scene.paint.Color;
 import jsf31kochfractalfx.JSF31KochFractalFX;
 import timeutil.TimeStamp;
 
@@ -35,13 +36,15 @@ public class KochManager implements Observer {
     GenerateSideTask sideBottom;
     GenerateSideTask sideRight;
     ExecutorService pool; /// only one threadpool
+    int counter;
     
     public KochManager(JSF31KochFractalFX app){
         application = app;
         k = new KochFractal();
         k.addObserver(this);
         edges = new CopyOnWriteArrayList();
-        pool = Executors.newFixedThreadPool(4);
+        pool = Executors.newFixedThreadPool(3);
+        counter = 0;
     }
     
     @Override
@@ -58,13 +61,20 @@ public class KochManager implements Observer {
     }
     
     public void changeLevel(int nxt){
+        if (sideLeft != null && sideRight != null && sideBottom != null)
+        {
+            sideLeft.cancel();
+            sideRight.cancel();
+            sideBottom.cancel();
+        }
         edges.clear();
+        application.clearKochPanel();
         timestampCalc = new TimeStamp();
         timestampCalc.setBegin();
         
-        sideLeft = new GenerateSideTask(nxt, Side.LEFT);
-        sideBottom = new GenerateSideTask(nxt, Side.BOTTOM);
-        sideRight = new GenerateSideTask(nxt, Side.RIGHT);
+        sideLeft = new GenerateSideTask(nxt, Side.LEFT, this);
+        sideBottom = new GenerateSideTask(nxt, Side.BOTTOM, this);
+        sideRight = new GenerateSideTask(nxt, Side.RIGHT, this);
         
         application.pbLeft.progressProperty().unbind();
         application.pbLeft.setProgress(0);
@@ -85,20 +95,14 @@ public class KochManager implements Observer {
         pool.execute(sideBottom);
         pool.execute(sideRight);
         
-            
-            Thread th = new Thread(new Runnable(){/// not letting UI wait for the calculations
-                @Override public void run(){
-                    try {
-                        sleep(250);
-                    } catch (InterruptedException ex) {
-                        Logger.getLogger(KochManager.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                    application.requestDrawEdges();
-                }
-            });
-            pool.execute(th);
-            
         
+    }
+    
+    public void drawWhiteEdge(Edge e){
+        Color c = e.color;
+        e.color = Color.WHITE;
+        application.drawEdge(e);
+        e.color = c;
     }
     
     public void drawEdges(){
@@ -114,7 +118,22 @@ public class KochManager implements Observer {
         
         timestampDraw.setEnd();
         application.setTextDraw(timestampDraw.toString());
-        application.setTextNrEdges(Integer.toString(k.getNrOfEdges()));
+        application.setTextNrEdges(Integer.toString(edges.size()));
+    }
+    
+    public synchronized void doneCalculating(){
+        if (++counter >= 3) {
+            application.requestDrawEdges();
+            counter = 0;
+            timestampCalc.setEnd();
+            Platform.runLater(new Runnable(){
+
+                @Override
+                public void run() {
+                    application.setTextCalc(timestampCalc.toString());
+                }
+            });
+        }
     }
     
 
