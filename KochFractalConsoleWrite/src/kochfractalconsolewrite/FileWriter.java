@@ -31,7 +31,7 @@ public class FileWriter implements Observer {
     
     
     
-    public boolean saveEdges(int level) {
+    public boolean saveEdges(int level, int method) {
         edges = new ArrayList<Edge>();
         KochFractal k = new KochFractal();
         k.addObserver(this);
@@ -41,7 +41,14 @@ public class FileWriter implements Observer {
         k.generateRightEdge();
         TimeStamp t = new TimeStamp();
         t.setBegin();
-        boolean b = saveEdgesBinaryNoBuffer(); // change this method 
+        boolean b = false;
+        switch (method) {
+            case 1: b = saveEdgesBinaryNoBuffer();
+            case 2: break;
+            case 3: break;
+            case 4: break;
+            default: b = false;
+        }
         t.setEnd();
         System.out.println(t.toString());
         loadEdges();
