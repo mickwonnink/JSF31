@@ -19,6 +19,7 @@ import java.util.Observer;
 public class KochFractalConsoleWrite{
 
     static int level;
+    static int mode;
     static ArrayList<Edge> edges;
     static FileWriter f = new FileWriter();
     
@@ -31,12 +32,26 @@ public class KochFractalConsoleWrite{
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
         System.out.print("Enter KochFractal level (only numbers, between 1 and 10): ");
 
+        
+        
+        //1 bin zonder
+        //2 bin met
+        //3 text zonder
+        //4 text met
+
         try {
             level = Integer.valueOf(reader.readLine());
             if (level < 1 || level > 10) throw new Exception("false input");
-            System.out.println((f.saveEdges(level))? "The level is: " + level + ", and it was saved properly" : "An error occured while calculating or saving");
-            
+            System.out.print("Enter save mode 1=bin, 2=binBuffer, 3=text, 4=textBuffer: ");
+            mode = Integer.valueOf(reader.readLine());
+            if (mode > 0 && mode < 5){            
+                f.saveEdges(level, mode);
             }
+            else {
+                System.out.print(mode + " is not a correct mode.");
+            }
+            
+        }
         catch (NumberFormatException ex) {
             System.err.println("Wrong input, please only use numbers");
         }
